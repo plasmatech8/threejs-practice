@@ -9,10 +9,13 @@ Contents:
 
 ## 01. Setup
 
-We will create an app using the Vite module bundler, using the Vite template.
-```bash
-npm init @vitejs/app
+We will create an app using the Vite module bundler, using the Vite template: `npm init @vitejs/app`
+```
 ✔ Project name: · myproject
 ✔ Select a framework: · vanilla
 ✔ Select a variant: · JavaScript
 ```
+
+Install ThreeJS: `npm install three`
+
+Run the dev server: `npm run dev`
