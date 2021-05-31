@@ -14,6 +14,7 @@ Contents:
   - [07. Function to Create Objects](#07-function-to-create-objects)
   - [08. Background Textures](#08-background-textures)
   - [09. Object Texture Mapping](#09-object-texture-mapping)
+  - [10. Scrolling Animation & Moving the Camera](#10-scrolling-animation--moving-the-camera)
 
 ## 01. Setup
 
@@ -205,3 +206,39 @@ moon.position.set(-10, 0, 10)
 moon.rotation.x = 0.5
 scene.add(moon)
 ```
+
+## 10. Scrolling Animation & Moving the Camera
+
+Now we will create scrollable overlayed text content over our background.
+
+Add a `main` tag and add lots of written content.
+
+Set position of main to absolute (otherwise it will be below background):
+```css
+main {
+    position: absolute;
+}
+```
+
+Add a `moveCamera` function on scroll to move objects:
+```js
+function moveCamera() {
+  const t = document.body.getBoundingClientRect().top
+  moon.rotation.x += 0.05
+  moon.rotation.y += 0.075
+  moon.rotation.z += 0.05
+
+  mark.rotation.y += 0.01
+  mark.rotation.z += 0.01
+
+  camera.position.x = t * -0.01
+  camera.position.z = t * 0.2 + 10
+  camera.position.y = t * -0.0002
+
+}
+document.body.onscroll = moveCamera
+```
+
+Update CSS to add styling and format the text to a grid.
+
+Now we have an awesome looking website!
