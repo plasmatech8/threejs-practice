@@ -11,6 +11,9 @@ Contents:
   - [04. Animation loop](#04-animation-loop)
   - [05. Adding Lighting](#05-adding-lighting)
   - [06. Adding Helpers](#06-adding-helpers)
+  - [07. Function to Create Objects](#07-function-to-create-objects)
+  - [08. Background Textures](#08-background-textures)
+  - [09. Object Texture Mapping](#09-object-texture-mapping)
 
 ## 01. Setup
 
@@ -152,4 +155,53 @@ function animate(){
     controls.update()
     renderer.render(scene, camera)
 }
+```
+Now we can pan/zoom around the scene using mouse buttons.
+
+## 07. Function to Create Objects
+
+We can add multiple objects by defining a function that we can call.
+```js
+function addStar(){
+  const geometry = new THREE.SphereGeometry(0.25, 24, 24)
+  const material = new THREE.MeshStandardMaterial({ color: 0xffffff })
+  const star = new THREE.Mesh(geometry, material)
+  const [x, y, z] = Array(3).fill().map(() => THREE.MathUtils.randFloatSpread(100)) // [-100, 100]
+  star.position.set(x, y, z)
+  scene.add(star)
+}
+Array(200).fill().forEach(addStar)
+```
+
+## 08. Background Textures
+
+We can add a background texture to a scene (though it will not move)
+```js
+const spaceTexture = new THREE.TextureLoader().load('img/space.jpg')
+scene.background = spaceTexture;
+```
+
+## 09. Object Texture Mapping
+
+We can create a Cube object and add our image to it:
+```js
+const markTexture = new THREE.TextureLoader().load('img/square_portrait_2.jpg')
+const mark = new THREE.Mesh(
+  new THREE.BoxGeometry(3, 3, 3),
+  new THREE.MeshBasicMaterial({ map: markTexture })
+)
+scene.add(mark)
+```
+
+We can create a sphere and add a moon texture and a normalmap:
+```js
+const moonTexture = new THREE.TextureLoader().load('img/moon.jpg')
+const moonNormalMap = new THREE.TextureLoader().load('img/normal.jpg')
+const moon = new THREE.Mesh(
+  new THREE.SphereGeometry(3, 34, 32),
+  new THREE.MeshStandardMaterial({  map: moonTexture, normalMap: moonNormalMap,
+                                    normalScale: new THREE.Vector2(0.6, 0.6)    }))
+moon.position.set(-10, 0, 10)
+moon.rotation.x = 0.5
+scene.add(moon)
 ```
