@@ -15,6 +15,7 @@ Contents:
   - [08. Background Textures](#08-background-textures)
   - [09. Object Texture Mapping](#09-object-texture-mapping)
   - [10. Scrolling Animation & Moving the Camera](#10-scrolling-animation--moving-the-camera)
+  - [11. Window Resizing](#11-window-resizing)
 
 ## 01. Setup
 
@@ -242,3 +243,17 @@ document.body.onscroll = moveCamera
 Update CSS to add styling and format the text to a grid.
 
 Now we have an awesome looking website!
+
+
+## 11. Window Resizing
+
+We can add this method to make the 3D background adjust to the screen size:
+```js
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize( window.innerWidth, window.innerHeight )
+  renderer.render(scene, camera)
+});
+```

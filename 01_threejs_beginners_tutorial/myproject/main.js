@@ -96,6 +96,16 @@ function moveCamera() {
 }
 document.body.onscroll = moveCamera
 
+// On resize window
+
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize( window.innerWidth, window.innerHeight )
+  renderer.render(scene, camera)
+});
+
 // Animation & Rendering
 
 function animate(){
