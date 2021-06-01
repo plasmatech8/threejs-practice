@@ -34,8 +34,19 @@ camera.add(mark)
 mark.rotation.x = 0.2
 mark.position.set(0.8, 0.5, -2)
 
+// Torus
+/* const torus = new THREE.Mesh(
+  new THREE.TorusGeometry(0.43, 0.07, 16, 100),
+  new THREE.MeshStandardMaterial({ color: 0xFF6347 }),
+)
+torus.position.set(0.8, 0.5, -2)
+camera.add(torus)
+const torusLight = new THREE.PointLight(0xffffff, 0.5, 1)
+torus.add(torusLight)
+*/
+
 // Ambient lighting
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.04)
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.05)
 scene.add(ambientLight)
 
 // Background image
@@ -44,7 +55,7 @@ scene.background = spaceTexture;
 
 // Sun (w/ point light)
 const sun = new THREE.Mesh(
-  new THREE.SphereGeometry(10, 34, 32),
+  new THREE.SphereGeometry(10, 12, 12),
   new THREE.MeshBasicMaterial({
     map: new THREE.TextureLoader().load('assets/sun/2k_sun.jpg'),
   })
@@ -56,15 +67,25 @@ sun.position.set(100, 0, 5)
 
 // Earth
 const earth = new THREE.Mesh(
-  new THREE.SphereGeometry(3, 34, 32),
-  new THREE.MeshPhongMaterial({
-    map         : new THREE.TextureLoader().load('assets/earth/2k_earth_daymap.jpg'),
-    normalMap   : new THREE.TextureLoader().load('assets/earth/2k_earth_normal_map.jpg'),
-    normalScale : new THREE.Vector2(7, 7),
-    specularMap : new THREE.TextureLoader().load('assets/earth/2k_earth_specular_map.jpg'),
-    shininess   : 50
-  })
+  new THREE.SphereBufferGeometry(3, 34, 32),
+  [
+    new THREE.MeshBasicMaterial({
+      map         : new THREE.TextureLoader().load('assets/earth/2k_earth_nightmap.jpg'),
+      specularMap : new THREE.TextureLoader().load('assets/earth/2k_earth_specular_map.jpg'),
+    }),
+    new THREE.MeshPhongMaterial({
+      map         : new THREE.TextureLoader().load('assets/earth/2k_earth_daymap.jpg'),
+      normalMap   : new THREE.TextureLoader().load('assets/earth/2k_earth_normal_map.jpg'),
+      normalScale : new THREE.Vector2(9, 9),
+      specularMap : new THREE.TextureLoader().load('assets/earth/2k_earth_specular_map.jpg'),
+      shininess   : 50,
+    }),
+  ]
 )
+earth.geometry.clearGroups();
+earth.geometry.addGroup( 0, Infinity, 0 );
+earth.geometry.addGroup( 0, Infinity, 1 );
+
 const clouds = new THREE.Mesh(
   new THREE.SphereGeometry(3.02, 34, 32),
   new THREE.MeshPhongMaterial({
@@ -96,7 +117,7 @@ function addStar(){
   let [x, y, z] = [0, 0, 0]
   while (Math.sqrt(x**2 + y**2 + z**2) < 20) {
     // Repeat until we find coordates are >= 20 from origin
-    [x, y, z] = Array(3).fill(null).map(() => THREE.MathUtils.randFloatSpread(300)) // [-300, 300]
+    [x, y, z] = Array(3).fill(null).map(() => THREE.MathUtils.randFloatSpread(200)) // [-200, 200]
   }
   star.position.set(x, y, z)
   scene.add(star)
@@ -122,35 +143,40 @@ window.addEventListener("resize", () => {
 
 // On scroll (animation & camera movement)
 function handleScroll() {
-
-  // Zoom-out effect (in conjunction with OrbitControls)
   const scrollPos = -document.body.getBoundingClientRect().top // Scroll position
   const scrollMax =  Math.max(
     document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight,
     document.documentElement.scrollHeight, document.documentElement.offsetHeight
   ) - window.innerHeight;
-  const t = (2 * scrollPos / scrollMax)**3
+  const t = (2 * scrollPos / scrollMax)**3 // [0, 1]
+
+  // Zoom-out effect (in conjunction with OrbitControls)
   targetCoords = [10 - 50*t, 1 + 2*t, 10]
 
+  // Earth
+  earth.material[0].transparent = true
+  earth.material[0].opacity = t*2
 }
 document.body.onscroll = handleScroll
 
 // Animation & Rendering
 function animate(){
   requestAnimationFrame(animate)
+  const time = new Date().getTime() / 1000
 
-  // Mark Rotation (rotation)
-  mark.rotation.y += 0.01
-
-  // Earth animation (rotation)
-  earth.rotation.y += 0.005
-  clouds.rotation.y += 0.0015
-  if(mark.rotation.y % 10 < 0.01){
-    mark.material.map = mark.material.map === markTexture1 ? markTexture2 : markTexture1
+  // Mark cube animation
+  mark.rotation.y += 0.003
+  if(Math.floor(time/5) % 2 === 0){
+    mark.material.map = markTexture1
+  } else {
+    mark.material.map =  markTexture2
   }
 
+  // Earth animation (rotation)
+  earth.rotation.y += 0.008
+  clouds.rotation.y += 0.002
+
   // Moon (rotation & orbit)
-  const time = new Date().getTime() / 1000
   const rps = 0.3
   moon.rotation.y = time * rps * Math.PI + 0.5*Math.PI
   moon.position.x = Math.sin(time * rps * Math.PI) * 10
