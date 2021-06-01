@@ -3,11 +3,20 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
 const debug = false;
-const free  = false;
+let free  = false;
 
-if (free) {
-  (<HTMLElement>document.getElementById('app')).remove()
-}
+// Buttons
+const freecamBtn = <HTMLElement>document.getElementById('btn-freecam')
+const bgonlyBtn =  <HTMLElement>document.getElementById('btn-bgonly')
+const appElement = <HTMLElement>document.getElementById('app')
+freecamBtn.addEventListener('click', () => {
+  appElement.style.display = 'none'
+  appElement.remove()
+  free = true
+})
+bgonlyBtn.addEventListener('click', () => {
+  appElement.style.opacity = '0'
+})
 
 // Initialise scene and renderer
 const canvasElemement = <HTMLCanvasElement>document.getElementById('bg')
@@ -17,41 +26,57 @@ renderer.setPixelRatio(window.devicePixelRatio)
 renderer.setSize(window.innerWidth, window.innerHeight)
 
 // Camera
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 5000)
 const controls = new OrbitControls(camera, renderer.domElement)
-let targetCoords: [number, number, number] = [10, 1, 10] // For interpolation
+let targetCoords: [number, number, number] = [10, 1, 10] // Used for interpolation
 camera.position.set(...targetCoords)
 scene.add(camera)
 
 // Mark Cube
-const markTexture1 = new THREE.TextureLoader().load('assets/mark/square_portrait_1.jpg')
-const markTexture2 = new THREE.TextureLoader().load('assets/mark/square_portrait_2.jpg')
-const mark = new THREE.Mesh(
-  new THREE.BoxGeometry(0.4, 0.4, 0.4),
-  new THREE.MeshBasicMaterial({ map: markTexture1 })
-)
+const markMaterials = [
+  new THREE.MeshBasicMaterial({
+    map: new THREE.TextureLoader().load('assets/mark/square_portrait_2.jpg'),
+    transparent: true,
+  }),
+  new THREE.MeshBasicMaterial({
+    map: new THREE.TextureLoader().load('assets/mark/square_portrait_1.jpg'),
+    transparent: true,
+  }),
+]
+const mark = new THREE.Mesh(new THREE.BoxBufferGeometry(0.4, 0.4, 0.4), markMaterials)
+mark.geometry.clearGroups();
+mark.geometry.addGroup( 0, Infinity, 0 );
+mark.geometry.addGroup( 0, Infinity, 1 );
 camera.add(mark)
 mark.rotation.x = 0.2
 mark.position.set(0.8, 0.5, -2)
-
-// Torus
-/* const torus = new THREE.Mesh(
-  new THREE.TorusGeometry(0.43, 0.07, 16, 100),
-  new THREE.MeshStandardMaterial({ color: 0xFF6347 }),
-)
-torus.position.set(0.8, 0.5, -2)
-camera.add(torus)
-const torusLight = new THREE.PointLight(0xffffff, 0.5, 1)
-torus.add(torusLight)
-*/
+setInterval(() => {
+  // Fade between the list of materials
+  mark.material = [...mark.material.slice(1), mark.material[0]]
+  mark.material[mark.material.length-1].opacity = 0
+  function fadeIter() {
+    mark.material[mark.material.length-1].opacity += 0.01
+    if (mark.material[mark.material.length-1].opacity < 1){
+      setTimeout(fadeIter, 10)
+    }
+  }
+  fadeIter()
+}, 10000)
 
 // Ambient lighting
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.05)
 scene.add(ambientLight)
 
 // Background image
-const spaceTexture = new THREE.TextureLoader().load('assets/space/2k_stars_milky_way.jpg')
-scene.background = spaceTexture;
+const background = new THREE.Mesh(
+  new THREE.SphereGeometry(3000, 10, 10),
+  new THREE.MeshBasicMaterial({
+    map         : new THREE.TextureLoader().load('assets/space/2k_stars_milky_way.jpg'),
+    side        : THREE.BackSide,
+  })
+)
+scene.add(background)
+
 
 // Sun (w/ point light)
 const sun = new THREE.Mesh(
@@ -124,7 +149,7 @@ function addStar(){
 }
 Array(200).fill(null).forEach(addStar)
 
-// Debug Helpers
+// Debug Helpers (spacial grid & light indicators)
 if (debug) {
   const pointLightHelper = new THREE.PointLightHelper(pointLight)
   const gridHelper = new THREE.GridHelper(200, 50)
@@ -153,7 +178,7 @@ function handleScroll() {
   // Zoom-out effect (in conjunction with OrbitControls)
   targetCoords = [10 - 50*t, 1 + 2*t, 10]
 
-  // Earth
+  // Earth changes from day to night
   earth.material[0].transparent = true
   earth.material[0].opacity = t*2
 }
@@ -166,11 +191,6 @@ function animate(){
 
   // Mark cube animation
   mark.rotation.y += 0.003
-  if(Math.floor(time/5) % 2 === 0){
-    mark.material.map = markTexture1
-  } else {
-    mark.material.map =  markTexture2
-  }
 
   // Earth animation (rotation)
   earth.rotation.y += 0.008
