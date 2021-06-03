@@ -97,6 +97,7 @@ const earth = new THREE.Mesh(
     new THREE.MeshBasicMaterial({
       map         : new THREE.TextureLoader().load('assets/earth/2k_earth_nightmap.jpg'),
       specularMap : new THREE.TextureLoader().load('assets/earth/2k_earth_specular_map.jpg'),
+      transparent : true
     }),
     new THREE.MeshPhongMaterial({
       map         : new THREE.TextureLoader().load('assets/earth/2k_earth_daymap.jpg'),
@@ -177,10 +178,6 @@ function handleScroll() {
 
   // Zoom-out effect (in conjunction with OrbitControls)
   targetCoords = [10 - 50*t, 1 + 2*t, 10]
-
-  // Earth changes from day to night
-  earth.material[0].transparent = true
-  earth.material[0].opacity = t*2
 }
 document.body.onscroll = handleScroll
 
@@ -195,6 +192,18 @@ function animate(){
   // Earth animation (rotation)
   earth.rotation.y += 0.008
   clouds.rotation.y += 0.002
+
+  // Earth day/night transition
+  const mapRange = (
+    value: number,
+    fromMin: number,
+    fromMax: number,
+    toMin: number,
+    toMax: number
+  ) => (value - fromMin) * (toMax - toMin) / (fromMax - fromMin) + toMin;
+  const opacity = mapRange(camera.position.x, 10, -12, 0, 1)
+  earth.material[0].opacity = opacity
+  //console.log({x: camera.position.x, opacity})
 
   // Moon (rotation & orbit)
   const rps = 0.3
