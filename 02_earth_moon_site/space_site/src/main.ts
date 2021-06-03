@@ -136,7 +136,7 @@ scene.add(moon)
 
 // Stars
 function addStar(){
-  const geometry = new THREE.SphereGeometry(0.1, 24, 24)
+  const geometry = new THREE.SphereGeometry(0.1, 6, 6)
   const material = new THREE.MeshBasicMaterial({ color: 0xffffff })
   const star = new THREE.Mesh(geometry, material)
   let [x, y, z] = [0, 0, 0]
