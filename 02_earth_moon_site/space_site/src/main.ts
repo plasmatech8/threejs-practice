@@ -77,7 +77,6 @@ const background = new THREE.Mesh(
 )
 scene.add(background)
 
-
 // Sun (w/ point light)
 const sun = new THREE.Mesh(
   new THREE.SphereGeometry(10, 12, 12),
@@ -149,6 +148,16 @@ function addStar(){
   scene.add(star)
 }
 Array(200).fill(null).forEach(addStar)
+
+// Mars
+const mars = new THREE.Mesh(
+  new THREE.SphereGeometry(2, 34, 32),
+  new THREE.MeshStandardMaterial({
+    map: new THREE.TextureLoader().load('assets/mars/2k_mars.jpg')
+  })
+)
+mars.position.set(-250, 5, -5)
+scene.add(mars)
 
 // Debug Helpers (spacial grid & light indicators)
 if (debug) {
