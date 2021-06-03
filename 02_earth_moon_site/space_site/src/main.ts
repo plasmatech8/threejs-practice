@@ -1,6 +1,7 @@
 import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { STLLoader } from 'three/examples/jsm/loaders/STLLoader'
 
 const debug = false;
 let free  = false;
@@ -17,6 +18,10 @@ freecamBtn.addEventListener('click', () => {
 bgonlyBtn.addEventListener('click', () => {
   appElement.style.opacity = '0'
 })
+if(free) { // If free when script is loaded
+  appElement.style.display = 'none'
+  appElement.remove()
+}
 
 // Initialise scene and renderer
 const canvasElemement = <HTMLCanvasElement>document.getElementById('bg')
@@ -140,14 +145,14 @@ function addStar(){
   const material = new THREE.MeshBasicMaterial({ color: 0xffffff })
   const star = new THREE.Mesh(geometry, material)
   let [x, y, z] = [0, 0, 0]
-  while (Math.sqrt(x**2 + y**2 + z**2) < 20) {
+  while (Math.sqrt(x**2 + y**2 + z**2) < 10) {
     // Repeat until we find coordates are >= 20 from origin
-    [x, y, z] = Array(3).fill(null).map(() => THREE.MathUtils.randFloatSpread(200)) // [-200, 200]
+    [x, y, z] = Array(3).fill(null).map(() => THREE.MathUtils.randFloatSpread(250)) // [-250, 250]
   }
   star.position.set(x, y, z)
   scene.add(star)
 }
-Array(200).fill(null).forEach(addStar)
+Array(300).fill(null).forEach(addStar)
 
 // Mars
 const mars = new THREE.Mesh(
@@ -159,11 +164,34 @@ const mars = new THREE.Mesh(
 mars.position.set(-250, 5, -5)
 scene.add(mars)
 
+// Swordsman
+const swordsman = new THREE.Mesh(
+  undefined,
+  new THREE.MeshStandardMaterial({
+    color: 'red'
+  })
+)
+swordsman.scale.set(1, 1, 1)
+swordsman.position.set(-100, -4, 25)
+swordsman.rotation.set(-Math.PI*0.5, 0, 0)
+scene.add(swordsman)
+const swordsmanLight = new THREE.PointLight(0xffffff, 1, 20)
+scene.add(swordsmanLight)
+swordsmanLight.position.setX(swordsman.position.x - 4)
+swordsmanLight.position.setY(swordsman.position.y + 5)
+swordsmanLight.position.setZ(swordsman.position.z - 6)
+new STLLoader().load(
+  'assets/swordsman/MarksSelfMadeHumanMale2pose1.stl',
+  (geometry) => swordsman.geometry = geometry
+)
+
 // Debug Helpers (spacial grid & light indicators)
 if (debug) {
   const pointLightHelper = new THREE.PointLightHelper(pointLight)
+  const swordsmanLightHelper = new THREE.PointLightHelper(swordsmanLight)
   const gridHelper = new THREE.GridHelper(200, 50)
   scene.add(pointLightHelper)
+  scene.add(swordsmanLightHelper)
   scene.add(gridHelper)
 }
 
@@ -219,6 +247,9 @@ function animate(){
   moon.rotation.y = time * rps * Math.PI + 0.5*Math.PI
   moon.position.x = Math.sin(time * rps * Math.PI) * 10
   moon.position.z = Math.cos(time * rps * Math.PI) * 10
+
+  // Swordsman (rotation)
+  swordsman.rotation.z += 0.015
 
   // Camera (interpolated movement)
   if(!free){
